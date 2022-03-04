@@ -9,10 +9,9 @@ class AuthRpcServer(rpclib.RpcServer):
     ## Fill in RPC methods here.
     pass
 
-if len(sys.argv) != 2:
-    print(sys.argv[0], "too few args")
+(_, dummy_zookld_fd, sockpath) = sys.argv
 
 s = AuthRpcServer()
-s.run_fork(sys.argv[1])
+s.run_sockpath_fork(sockpath)
 
 

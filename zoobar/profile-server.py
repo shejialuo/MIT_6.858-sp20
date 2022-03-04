@@ -10,8 +10,6 @@ import socket
 import bank
 import zoodb
 
-sys.path.append(os.getcwd())
-import readconf
 
 from debug import *
 
@@ -71,8 +69,7 @@ class ProfileServer(rpclib.RpcServer):
         with rpclib.RpcClient(sa) as profile_api_client:
             return sandbox.run(lambda: run_profile(pcode, profile_api_client))
 
-if len(sys.argv) != 2:
-    print(sys.argv[0], "too few args")
+(_, dummy_zookld_fd, sockpath) = sys.argv
 
 s = ProfileServer()
-s.run_fork(sys.argv[1])
+s.run_sockpath_fork(sockpath)

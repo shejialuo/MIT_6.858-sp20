@@ -6,9 +6,6 @@ import errno
 import json
 from debug import *
 
-sys.path.append(os.getcwd())
-import readconf
-
 def parse_req(req):
     return json.loads(req)
 
@@ -45,11 +42,19 @@ class RpcServer(object):
             ret = m(**kwargs)
             sock.sendall(format_resp(ret).encode('ascii') + b'\n')
 
-    def run_fork(self, port):
-        print("Running on port %s" % port)
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        server.bind(('', int(port)))
+    def run_sockpath_fork(self, sockpath):
+        if os.path.exists(sockpath):
+            s = os.stat(sockpath)
+            if not stat.S_ISSOCK(s.st_mode):
+                raise Exception('%s exists and is not a socket' % sockpath)
+            os.unlink(sockpath)
+
+        server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        server.bind(sockpath)
+
+        # Allow anyone to connect.
+        # For access control, use directory permissions.
+        os.chmod(sockpath, 0o777)
 
         # Make sure there are no buffered writes before forking
         sys.stdout.flush()
@@ -97,8 +102,7 @@ class RpcClient(object):
     def __exit__(self, *args):
         self.close()
 
-def client_connect(host):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    print("Connecting to %s:%d" % (host[0], host[1]))
-    sock.connect(host)
+def client_connect(pathname):
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sock.connect(pathname)
     return RpcClient(sock)
