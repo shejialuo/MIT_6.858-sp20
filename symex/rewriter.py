@@ -88,6 +88,31 @@ def __rewriter_load_attr_get(a):
 
   return __newget.__get__(a)
 
+def __rewriter_load_method_get(a, *args, **kwargs):
+  ## override 'get' for dicts
+  ##
+  ## isinstance(a, dict) is not sufficient because a class
+  ## can subclass dict but can override the get() function
+
+  ## invoke the function for dict.get
+  if a is dict:
+    return __newget(*args, **kwargs)
+
+  for cls in inspect.getmro(type(a)):
+    ## rewrite for dict and dictproxy
+    if cls == dict:
+      break
+
+    ## check for non-dict "get" method
+    for (name, v) in inspect.getmembers(cls):
+      if name == "get" and v == dict.get:
+        break
+      elif name == "get":
+        ## invoke found function
+        return v(a, *args, **kwargs)
+
+  return __newget(a, *args, **kwargs)
+
 def __rewriter_eq(a, b):
   return a == b
 
@@ -97,6 +122,7 @@ builtins.__rewriter_pct = __rewriter_pct
 builtins.__rewriter_in = __rewriter_in
 builtins.__rewriter_not_in = __rewriter_not_in
 builtins.__rewriter_load_attr_get = __rewriter_load_attr_get
+builtins.__rewriter_load_method_get = __rewriter_load_method_get
 builtins.__rewriter_eq = __rewriter_eq
 
 def rewrite_function(f):
@@ -159,6 +185,12 @@ def rewrite_bytecode(bc):
       newinstr.append(bytecode.Instr("LOAD_GLOBAL", "__rewriter_load_attr_get"))
       newinstr.append(bytecode.Instr("ROT_TWO"))
       newinstr.append(bytecode.Instr("CALL_FUNCTION", 1))
+      changed = True
+      continue
+
+    if i.name == 'LOAD_METHOD' and i.arg == 'get':
+      newinstr.append(bytecode.Instr("LOAD_GLOBAL", "__rewriter_load_method_get"))
+      newinstr.append(bytecode.Instr("ROT_TWO"))
       changed = True
       continue
 

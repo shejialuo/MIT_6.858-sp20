@@ -7,8 +7,10 @@ import symex.fuzzy as fuzzy
 import inspect
 import symex.importwrapper as importwrapper
 import symex.rewriter as rewriter
+import warnings
 
 importwrapper.rewrite_imports(rewriter.rewriter)
+warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 import symex.symflask
 import symex.symsql
