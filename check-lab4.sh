@@ -41,7 +41,7 @@ DOTS="[ ${YELLOW}....${NORMAL} ]"
 run_test() {
     printf "${INFO}: Testing exploit for $1...\n"
     setup_server
-    $HOME/phantomjs $2 .
+    $HOME/phantomjs --ignore-ssl-errors=yes $2 .
 }
 
 cleanup
@@ -52,7 +52,7 @@ trap cleanup EXIT
 echo "Generating reference images..."
 setup_server
 sudo ldconfig
-$HOME/phantomjs lab4-tests/make-reference-images.js
+$HOME/phantomjs --ignore-ssl-errors=yes lab4-tests/make-reference-images.js
 
 ### Part 1 ###
 run_test "Exercise 1" lab4-tests/grade-ex01.js
