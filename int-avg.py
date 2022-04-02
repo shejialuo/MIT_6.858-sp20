@@ -36,7 +36,22 @@ as33 = z3.SignExt(1, a)
 bs33 = z3.SignExt(1, b)
 real_s_avg = z3.Extract(31, 0, (as33 + bs33) / 2)
 
-def do_check(msg, e):
+def printable_val(v, signed):
+    if type(v) == z3.BitVecNumRef:
+        if signed:
+            v = v.as_signed_long()
+        else:
+            v = v.as_long()
+    return v
+
+def printable_model(m, signed):
+    vals = {}
+    for k in m:
+        vals[k] = printable_val(m[k], signed)
+    return vals
+
+def do_check(msg, signed, avg, real_avg):
+    e = (avg != real_avg)
     print("Checking", msg, "using Z3 expression:")
     print("    " + str(e).replace("\n", "\n    "))
     solver = z3.Solver()
@@ -46,7 +61,9 @@ def do_check(msg, e):
 
     if ok == z3.sat:
         m = solver.model()
-        print("  Example solution:", m)
+        print("  Example:", printable_model(m, signed))
+        print("  Your average:", printable_val(m.eval(avg), signed))
+        print("  Real average:", printable_val(m.eval(real_avg), signed))
 
-do_check("unsigned avg", u_avg != real_u_avg)
-do_check("signed avg", s_avg != real_s_avg)
+do_check("unsigned avg", False, u_avg, real_u_avg)
+do_check("signed avg", True, s_avg, real_s_avg)
