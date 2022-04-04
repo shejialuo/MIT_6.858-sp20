@@ -97,7 +97,7 @@ def login():
         ## Be careful not to include semicolons in cookie value; see
         ## https://github.com/mitsuhiko/werkzeug/issues/226 for more
         ## details.
-        response.set_cookie('PyZoobarLogin', cookie)
+        response.set_cookie('PyZoobarLogin', cookie, samesite='None')
         return response
 
     return render_template('login.html',
