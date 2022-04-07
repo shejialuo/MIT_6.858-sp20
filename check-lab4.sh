@@ -61,12 +61,12 @@ run_test "Exercise 3" lab4-tests/grade-ex03.js
 run_test "Exercise 4" lab4-tests/grade-ex04.js
 run_test "Exercise 5" lab4-tests/grade-ex05.js
 
-### Part 2 ###
-run_test "Exercise 6" lab4-tests/grade-ex06.js
-run_test "Exercise 7" lab4-tests/grade-ex07.js
-run_test "Exercise 8" lab4-tests/grade-ex08.js
+### Old part 2 ###
+# run_test "Exercise 6" lab4-tests/grade-ex06.js
+# run_test "Exercise 7" lab4-tests/grade-ex07.js
+# run_test "Exercise 8" lab4-tests/grade-ex08.js
 
-### Part 3 ###
+### Part 2 ###
 run_test "Exercise 9" lab4-tests/grade-ex09.js
 run_test "Exercise 10" lab4-tests/grade-ex10.js
 run_test "Exercise 11" lab4-tests/grade-ex11.js
@@ -76,5 +76,5 @@ run_test "Exercise 13" lab4-tests/grade-ex13.js
 ### Challenge ###
 run_test "Challenge" lab4-tests/grade-chal.js
 
-### Part 4 ###
+### Part 3 ###
 run_test "Exercise 14" lab4-tests/grade-ex14.js
