@@ -34,3 +34,29 @@ info frame
 Now, it is obvious. We should set the return address to be `0x7fffffffecc0`
 which is just behind the return address, and the shell code should be put in
 the `0x7fffffffecc0`
+
+## Part 3
+
+Still we need to use `reqpath` overflow. So the idea is that first we need to
+make `process_client` returns to `accidentally` function and when `accidentally` return,the next instruction should call `unlink`.
+
+Let's look at what does `accidentally` does:
+
+```c
+void accidentally(void)
+{
+       __asm__("mov 16(%%rbp), %%rdi": : :"rdi");
+}
+```
+
+Well, we need to change `rbp`'s value. So we could make the following
+memory layout:
+
++ `0x7fffffffecb8`: the `accidentally` start address
++ `0x7fffffffecc0`: the `unlink` start address
++ `0x7fffffffecc8`: the parameter start address `0x7fffffffecd0`.
++ `0x7fffffffecd0`: the parameter
+
+At last, we need to provide the start address of the parameter.
+
+Now we can code.
