@@ -3,7 +3,7 @@ from functools import wraps
 from debug import *
 from zoodb import *
 
-import auth
+import auth_client
 import bank
 import random
 
@@ -12,7 +12,7 @@ class User(object):
         self.person = None
 
     def checkLogin(self, username, password):
-        token = auth.login(username, password)
+        token = auth_client.login(username, password)
         if token is not None:
             return self.loginCookie(username, token)
         else:
@@ -26,8 +26,13 @@ class User(object):
         self.person = None
 
     def addRegistration(self, username, password):
-        token = auth.register(username, password)
+        token = auth_client.register(username, password)
         if token is not None:
+            person_db = person_setup()
+            new_person = Person()
+            new_person.username = username
+            person_db.add(new_person)
+            person_db.commit()
             return self.loginCookie(username, token)
         else:
             return None
@@ -36,11 +41,12 @@ class User(object):
         if cookie is None:
             return
         (username, token) = cookie.rsplit("#", 1)
-        if auth.check_token(username, token):
+        if auth_client.check_token(username, token):
             self.setPerson(username, token)
 
     def setPerson(self, username, token):
         persondb = person_setup()
+        log(username)
         self.person = persondb.query(Person).get(username)
         self.token = token
         self.zoobars = bank.balance(username)

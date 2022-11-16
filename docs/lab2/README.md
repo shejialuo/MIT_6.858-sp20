@@ -12,3 +12,20 @@ download the latest image.
 ## Part 1
 
 It's easy.
+
+## Part 2
+
+The first job is to split the monolithic applications to microservices. It is easy.
+We first need to ensure the interfaces.
+
++ `auth.login`
++ `auth.register`
++ `auth.check_token`
+
+So we need to update the `auth-server.py` to call these functions. Next, we need to
+update the `auth_client.py` to support these RPC calls. And last we should change the
+`login.py` to call `auth_client.py` method.
+
+Well, the tricky part is for the database.
+
+And next we hash the password with salt.
