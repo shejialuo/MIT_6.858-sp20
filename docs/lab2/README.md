@@ -29,3 +29,8 @@ update the `auth_client.py` to support these RPC calls. And last we should chang
 Well, the tricky part is for the database.
 
 And next we hash the password with salt.
+
+## Part 3
+
+Just like part 2, However, do remember each database is independent. And we need to
+ensure the secuirty to transfering the money. Easy job.

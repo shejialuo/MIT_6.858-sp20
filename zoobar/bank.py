@@ -2,11 +2,15 @@ from zoodb import *
 from debug import *
 
 import time
+import auth_client
 
-def transfer(sender, recipient, zoobars):
-    persondb = person_setup()
-    senderp = persondb.query(Person).get(sender)
-    recipientp = persondb.query(Person).get(recipient)
+def transfer(sender, recipient, zoobars, token):
+    bank_db = bank_setup()
+    senderp = bank_db.query(Bank).get(sender)
+    recipientp = bank_db.query(Bank).get(recipient)
+
+    if not auth_client.check_token(senderp.username, token):
+        return
 
     sender_balance = senderp.zoobars - zoobars
     recipient_balance = recipientp.zoobars + zoobars
@@ -16,7 +20,7 @@ def transfer(sender, recipient, zoobars):
 
     senderp.zoobars = sender_balance
     recipientp.zoobars = recipient_balance
-    persondb.commit()
+    bank_db.commit()
 
     transfer = Transfer()
     transfer.sender = sender
@@ -29,9 +33,16 @@ def transfer(sender, recipient, zoobars):
     transferdb.commit()
 
 def balance(username):
-    db = person_setup()
-    person = db.query(Person).get(username)
+    db = bank_setup()
+    person = db.query(Bank).get(username)
     return person.zoobars
+
+def register(username):
+    db = bank_setup()
+    new_zoobar = Bank()
+    new_zoobar.username = username
+    db.add(new_zoobar)
+    db.commit()
 
 def get_log(username):
     db = transfer_setup()
