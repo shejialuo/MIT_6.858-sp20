@@ -34,3 +34,18 @@ And next we hash the password with salt.
 
 Just like part 2, However, do remember each database is independent. And we need to
 ensure the secuirty to transfering the money. Easy job.
+
+## Part 4
+
+This part is all about sandbox. The idea is simple, use `chroot` and set the uid and gid
+for the child process before running.
+
+The tricky part is this requirement:
+
+> One challenge is that the profile service performs rpc_xfer from the profile owner's account, which
+> requires a token for the owner. You cannot just add an RPC to the auth service to obtain a token for the
+> profile owner, because then any service could ask for it; we want only the profile service to be able to
+> do this transfer. Similarly, we cannot add an RPC to the bank service to do a transfer from anyone's
+> account without a token.
+
+The other part is easy.

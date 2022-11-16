@@ -4,13 +4,14 @@ from debug import *
 import time
 import auth_client
 
-def transfer(sender, recipient, zoobars, token):
+def transfer(sender, recipient, zoobars, token, authorized):
     bank_db = bank_setup()
     senderp = bank_db.query(Bank).get(sender)
     recipientp = bank_db.query(Bank).get(recipient)
 
-    if not auth_client.check_token(senderp.username, token):
+    if (not authorized) and (not auth_client.check_token(senderp.username, token)):
         return
+
 
     sender_balance = senderp.zoobars - zoobars
     recipient_balance = recipientp.zoobars + zoobars

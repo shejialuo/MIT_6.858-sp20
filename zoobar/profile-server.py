@@ -25,6 +25,7 @@ class ProfileAPIServer(rpclib.RpcServer):
         self.visitor = visitor
         self.pcode = pcode
         self.ct = ct
+        os.setresuid(6857, 6857, 6857)
 
     def rpc_get_self(self):
         return self.user
@@ -41,8 +42,8 @@ class ProfileAPIServer(rpclib.RpcServer):
                  'zoobars': bank_client.balance(username),
                }
 
-    def rpc_xfer(self, target, zoobars, token):
-        bank_client.transfer(self.user, target, zoobars, token)
+    def rpc_xfer(self, target, zoobars):
+        bank_client.transfer(self.user, target, zoobars)
 
 def run_profile(pcode, profile_api_client):
     globals = {'api': profile_api_client}
@@ -50,9 +51,12 @@ def run_profile(pcode, profile_api_client):
 
 class ProfileServer(rpclib.RpcServer):
     def rpc_run(self, pcode, user, visitor):
-        uid = 0
+        uid = 6858
 
-        userdir = '/tmp'
+        userdir = '/tmp/%s' % base64.b64encode(user.encode('utf-8')).decode('utf-8')
+        if not os.path.exists(userdir):
+            os.makedirs(userdir,0o755)
+            os.chown(userdir, uid, uid)
 
         (sa, sb) = socket.socketpair(socket.AF_UNIX, socket.SOCK_STREAM, 0)
         pid = os.fork()

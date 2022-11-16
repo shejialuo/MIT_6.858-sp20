@@ -7,7 +7,10 @@ from debug import *
 
 class BankRpcServer(rpclib.RpcServer):
     def rpc_transfer(self, sender, recipient, zoobars, token):
-        return bank.transfer(sender, recipient, zoobars, token)
+        authorized = False
+        if self.caller == 'profile':
+            authorized = True
+        return bank.transfer(sender, recipient, zoobars, token, authorized)
     def rpc_balance(self, username):
         return bank.balance(username)
     def rpc_register(self, username):

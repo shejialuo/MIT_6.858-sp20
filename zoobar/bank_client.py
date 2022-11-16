@@ -5,7 +5,7 @@ import rpclib
 sys.path.append(os.getcwd())
 import readconf
 
-def transfer(sender, recipient, zoobars, token):
+def transfer(sender, recipient, zoobars, token=""):
     host = readconf.read_conf().lookup_host('bank')
     with rpclib.client_connect(host) as c:
         kwargs = {'sender':sender,'recipient':recipient, 'zoobars': zoobars, 'token': token}
