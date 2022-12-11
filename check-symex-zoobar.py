@@ -87,6 +87,21 @@ def test_stuff():
 
   ## Detect zoobar theft.
   ## When detected, call report_zoobar_theft()
+  balance2 = sum([p.zoobars for p in pdb.query(zoobar.zoodb.Person).all()])
+  if balance1 != balance2:
+    report_balance_mismatch()
+    ## Detect zoobar theft.
+    ## When detected, call report_zoobar_theft()
+  username_set = set()
+  for p in pdb.query(zoobar.zoodb.Person).all():
+    username_set.add(p.username)
+  for transfer in tdb.query(zoobar.zoodb.Transfer).all():
+    if transfer.sender in username_set:
+      username_set.remove(transfer.sender)
+  for username in username_set:
+    person = pdb.query(zoobar.zoodb.Person).get(username)
+  if person.zoobars < 10:
+    report_zoobar_theft()
 
 
 fuzzy.concolic_execs(test_stuff, maxiter=500, verbose=1)

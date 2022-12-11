@@ -570,6 +570,15 @@ class concolic_str(str):
   ## Exercise 7: your code here.
   ## Implement symbolic versions of string length (override __len__)
   ## and contains (override __contains__).
+  def __len__(self):
+    return concolic_int(sym_length(ast(self)) ,len(self.__v))
+
+  def __contains__(self, o) -> bool:
+    if isinstance(o, concolic_str):
+      res = o.__v in self.__v
+    else:
+      res = o in self.__v
+    return concolic_bool(sym_contains(ast(self), ast(o)), res)
 
   def startswith(self, o):
     res = self.__v.startswith(o)
@@ -706,6 +715,15 @@ class concolic_bytes(bytes):
   ## Exercise 7: your code here.
   ## Implement symbolic versions of bytes length (override __len__)
   ## and contains (override __contains__).
+  def __len__(self):
+    return concolic_int(sym_length(ast(self)),len(self.__v))
+
+  def __contains__(self, o):
+    if isinstance(o, concolic_bytes):
+      res = o.__v in self.__v
+    else:
+      res = o in self.__v
+    return concolic_bool(sym_contains(ast(self), ast(o)), res)
 
   def startswith(self, o):
     res = self.__v.startswith(o)
