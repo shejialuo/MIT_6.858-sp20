@@ -950,7 +950,13 @@ def concolic_force_branch(b, branch_conds, branch_callers, verbose = 1):
   ## https://docs.python.org/3/tutorial/controlflow.html#unpacking-argument-lists
 
   constraint = None
-
+  constraint_list = []
+  for i in range(len(branch_conds)):
+    constraint_list.append(branch_conds[i])
+  
+  constraint_list[b] = sym_not(branch_conds[b])
+  constraint = sym_and(*constraint_list)
+      
   if verbose > 2:
     callers = branch_callers[b]
     print('Trying to branch at %s:%d:' % (callers[0], callers[1]))
@@ -975,7 +981,14 @@ def concolic_find_input(constraint, ok_names, verbose=0):
   ## If Z3 was able to find example inputs that solve this
   ## constraint (i.e., ok == z3.sat), make a new input set
   ## containing the values from Z3's model, and return it.
-  return False, ConcreteValues()
+  ok, model = fork_and_check(constraint)
+  value = ConcreteValues()
+  if ok == z3.sat:
+      for name, val in model.items():
+        if name in ok_names:
+          value.add(name, val)
+      return True, value
+  return False, value
 
 # Concolic execute func for many different paths and return all
 # computed results for those different paths.
@@ -997,6 +1010,16 @@ def concolic_execs(func, maxiter = 100, verbose = 0):
     (r, branch_conds, branch_callers) = concolic_exec_input(func, concrete_values, verbose)
     if r not in outs:
       outs.append(r)
+    for i in range(len(branch_conds)):
+      constraint = concolic_force_branch(i, branch_conds, branch_callers)
+      if constraint in checked:
+        continue
+      checked.add(constraint)
+      ok, value = concolic_find_input(constraint, concrete_values.var_names())
+      if not ok:
+        continue
+      value.inherit(concrete_values)
+      inputs.add(value, branch_callers[i])
 
     ## Exercise 6: your code here.
     ##
