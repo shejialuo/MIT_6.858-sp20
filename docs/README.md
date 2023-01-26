@@ -56,3 +56,16 @@ to get the i-node, and read the contents.
 
 The most tricky part is to add a record in the directory, we should update the memory
 part but also the disk part. It is not hard.
+
+### tables.py
+
+`tables.py` define the `Itable` class to represent the itable, it will holding a mapping
+from i-number to the inode. And there are many auxiliary functions:
+
++ `resolve`: this function accepts the `<principal, i-number>` pair. It will resolve it
+to the inode.
++ `modmap`: this function is complicated. Omit.
+
+### fs.py
+
+Actually, this part is really tedious. I omit.
