@@ -64,8 +64,4 @@ from i-number to the inode. And there are many auxiliary functions:
 
 + `resolve`: this function accepts the `<principal, i-number>` pair. It will resolve it
 to the inode.
-+ `modmap`: this function is complicated. Omit.
-
-### fs.py
-
-Actually, this part is really tedious. I omit.
++ `modmap`: this function aims to change the mapping of the i-table.
