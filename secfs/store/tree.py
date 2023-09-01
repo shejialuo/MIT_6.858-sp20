@@ -8,7 +8,7 @@ import secfs.store.block
 from secfs.store.inode import Inode
 from secfs.types import I, Principal, User, Group
 
-def find_under(dir_i, name):
+def find_under(dir_i: I, name: str) -> I:
     """
     Attempts to find the i of the file or directory with the given name under
     the directory at i.
@@ -27,7 +27,7 @@ class Directory:
     A Directory is used to marshal and unmarshal the contents of directory
     inodes. To load a directory, an i must be given.
     """
-    def __init__(self, i):
+    def __init__(self, i: I):
         if not isinstance(i, I):
             raise TypeError("{} is not an I, is a {}".format(i, type(i)))
 
@@ -45,7 +45,7 @@ class Directory:
     def bytes(self):
         return pickle.dumps(self.children)
 
-def add(dir_i, name, i):
+def add(dir_i: I, name: str, i: I):
     """
     Updates the directory's inode contents to include an entry for i under the
     given name.

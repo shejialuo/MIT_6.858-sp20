@@ -20,7 +20,7 @@ owner = None
 # root_i is the i of the root of the current share
 root_i = None
 
-def get_inode(i):
+def get_inode(i: I):
     """
     Shortcut for retrieving an inode given its i.
     """
@@ -30,7 +30,7 @@ def get_inode(i):
 
     return Inode.load(ihash)
 
-def init(owner, users, groups):
+def init(owner: User, users, groups):
     """
     init will initialize a new share root as the given user principal. This
     includes setting up . and .. in the root directory, as well as adding the
@@ -81,7 +81,7 @@ def init(owner, users, groups):
 
     return root_i
 
-def _create(parent_i, name, create_as, create_for, isdir):
+def _create(parent_i: I, name: str, create_as: User, create_for: Principal, isdir: bool):
     """
     _create allocates a new file, and links it into the directory at parent_i
     with the given name. The new file is owned by create_for, but is created
@@ -127,7 +127,24 @@ def _create(parent_i, name, create_as, create_for, isdir):
     #    given name
     #
     # Also make sure that you *return the final i* for the new inode!
-    return I(User(0), 0)
+
+    # return I(User(0), 0)
+
+    ihash = secfs.store.block.store(node.bytes())
+    store_i = secfs.tables.modmap(create_as, I(create_for), ihash)
+
+    if isdir:
+        new_ihash = secfs.store.tree.add(store_i, b'.', store_i)
+        secfs.tables.modmap(create_as, store_i, new_ihash)
+        new_ihash = secfs.store.tree.add(store_i, b'..', parent_i)
+        secfs.tables.modmap(create_as, store_i, new_ihash)
+
+    if create_for.is_group():
+        secfs.tables.modmap(create_as, I(create_for), store_i)
+
+    link(create_as, store_i, parent_i, name)
+
+    return store_i
 
 def create(parent_i, name, create_as, create_for):
     """
@@ -197,7 +214,7 @@ def write(write_as, i, off, buf):
 
     return len(buf)
 
-def readdir(i, off):
+def readdir(i: I, off):
     """
     Return a list of is in the directory at i.
     Each returned list item is a tuple of an i and an index. The index can be
@@ -209,7 +226,7 @@ def readdir(i, off):
 
     return [(i, index+1) for index, i in enumerate(dr.children) if index >= off]
 
-def link(link_as, i, parent_i, name):
+def link(link_as: User, i: I, parent_i: I, name: str):
     """
     Adds the given i into the given parent directory under the given name.
     """

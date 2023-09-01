@@ -57,7 +57,7 @@ class Itable:
     def bytes(self):
         return pickle.dumps(self.mapping)
 
-def resolve(i, resolve_groups = True):
+def resolve(i: I, resolve_groups = True):
     """
     Resolve the given i into an inode hash. If resolve_groups is not set, group
     is will only be resolved to their user i, but not further.
@@ -83,7 +83,7 @@ def resolve(i, resolve_groups = True):
     global current_itables
     if principal not in current_itables:
         # User does not yet have an itable
-        return None 
+        return None
 
     t = current_itables[principal]
 
@@ -103,7 +103,7 @@ def resolve(i, resolve_groups = True):
 
     return t.mapping[i.n]
 
-def modmap(mod_as, i, ihash):
+def modmap(mod_as: User, i: I, ihash) -> I:
     """
     Changes or allocates i so it points to ihash.
 
