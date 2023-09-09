@@ -9,9 +9,6 @@ import secfs.store
 import secfs.fs
 from secfs.types import I, Principal, User, Group
 
-# current_itables represents the current view of the file system's itables
-current_itables = {}
-
 # a server connection handle is passed to us at mount time by secfs-fuse
 server = None
 def register(_server):
@@ -24,9 +21,12 @@ def pre(refresh, user):
     an exclusive server lock.
     """
 
+    global version_structure_list
+    version_structure_list.download()
     if refresh != None:
         # refresh usermap and groupmap
         refresh()
+
 
 def post(push_vs):
     if not push_vs:
@@ -34,7 +34,64 @@ def post(push_vs):
         # you will probably want to leave this here and
         # put your post() code instead of "pass" below.
         return
-    pass
+    global version_structure_list
+    version_structure_list.upload()
+
+class VersionStructure:
+    """
+    `VersionStructure` is the most important data structure in this lab. In
+    the original SUNDR paper, the version structure is specified only for
+    the `User`. Each user could have one and more group handles. However,
+    it's a bad idea for the current code. Because the `current_itables`
+    mapping the `I` to the inode. The `I.p` could be user or the group.
+    """
+
+    version_vector : dict[Principal, int]
+    # It could be the user or the group, it is only the hash, should
+    # later read from
+    i_handle: str
+
+    def __init__(self):
+        self.version_vector = {}
+        self.i_handle = ""
+
+class VersionStructureList:
+    """
+    `VersionStructureList` is the core data structure here, It
+    contains the the user or the group `VersionStructure`.
+    """
+
+    version_structures: dict[Principal, VersionStructure]
+
+    def __init__(self) -> None:
+        self.version_structures = {}
+
+    def download(self) -> None:
+        """
+        Download the `version_structure_list` from the server, it should
+        be called every time it operates on the file system. It's may
+        be a bad idea, but it is simple.
+        """
+
+        global server
+        blob = server.read_version_structure_list()
+
+        if blob == None:
+            return
+
+        if "data" in blob:
+            import base64
+            blob = base64.b64decode(blob["data"])
+
+        self.version_structures = pickle.loads(blob)
+
+    def upload(self) -> None:
+
+        global server
+        blob = pickle.dumps(self.version_structures)
+        server.store_version_structure_list(blob)
+
+version_structure_list = VersionStructureList()
 
 class Itable:
     """
@@ -80,12 +137,13 @@ def resolve(i: I, resolve_groups = True):
         # someone is trying to look up an i that has not yet been allocated
         return None
 
-    global current_itables
-    if principal not in current_itables:
+    global version_structure_list
+    if principal not in version_structure_list.version_structures:
         # User does not yet have an itable
         return None
 
-    t = current_itables[principal]
+    i_handle = version_structure_list.version_structures[principal].i_handle
+    t = Itable.load(i_handle)
 
     if i.n not in t.mapping:
         raise LookupError("principal {} does not have i {}".format(principal, i))
@@ -154,16 +212,18 @@ def modmap(mod_as: User, i: I, ihash) -> I:
 
     # find (or create) the principal's itable
     t = None
-    global current_itables
-    if i.p not in current_itables:
+    global version_structure_list
+    if i.p not in version_structure_list.version_structures:
         if i.allocated():
             # this was unexpected;
             # user did not have an itable, but an inumber was given
             raise ReferenceError("itable not available")
         t = Itable()
+        version_structure_list.version_structures[i.p] = VersionStructure()
         print("no current list for principal", i.p, "; creating empty table", t.mapping)
     else:
-        t = current_itables[i.p]
+        i_handle = version_structure_list.version_structures[i.p].i_handle
+        t = Itable.load(i_handle)
 
     # look up (or allocate) the inumber for the i we want to modify
     if not i.allocated():
@@ -179,5 +239,8 @@ def modmap(mod_as: User, i: I, ihash) -> I:
     if i.p.is_group():
         print("mapping", i.n, "for group", i.p, "into", t.mapping)
     t.mapping[i.n] = ihash # for groups, ihash is an i
-    current_itables[i.p] = t
+
+    i_handle = secfs.store.block.store(t.bytes())
+    version_structure_list.version_structures[i.p].i_handle = i_handle
+
     return i

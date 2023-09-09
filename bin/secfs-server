@@ -8,6 +8,7 @@ seq_lock = threading.Lock()
 class SecFSRPC():
     def __init__(self):
         self.roots = {}
+        self.version_structure_list_hash = None
 
         #
         # NOTE: All your server state *must* go here.
@@ -61,6 +62,24 @@ class SecFSRPC():
         chash = hashlib.sha224(blob).hexdigest()
         self.blocks[chash] = blob
         return chash
+
+    @Pyro4.expose
+    def read_version_structure_list(self):
+        chash = self.version_structure_list_hash
+        if chash != None and chash in self.blocks:
+            return self.blocks[chash]
+        return None
+
+    @Pyro4.expose
+    def store_version_structure_list(self, blob):
+        if "data" in blob:
+            import base64
+            blob = base64.b64decode(blob["data"])
+
+        import hashlib
+        chash = hashlib.sha224(blob).hexdigest()
+        self.blocks[chash] = blob
+        self.version_structure_list_hash = chash
 
 import sys
 if len(sys.argv) != 2:
