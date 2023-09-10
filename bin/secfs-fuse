@@ -213,7 +213,7 @@ class SecFS(llfuse.Operations):
             self._pre(mounter, False)
             root = secfs.fs.init(mounter,
                 {u: secfs.crypto.generate_key(u) for u in secfs.crypto.keys},
-                {Group(100): [u for u in secfs.crypto.keys if u.id != 666]}
+                {Group(984): [u for u in secfs.crypto.keys if u.id != 666]}
             )
             self.server.create(self.share, root)
             self._post()
