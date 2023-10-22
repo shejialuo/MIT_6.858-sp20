@@ -21,7 +21,14 @@ def pre(refresh, user):
     an exclusive server lock.
     """
 
-    global version_structure_list
+    # We need to store the `previous_version_structure_list` because
+    # we need to compare the `version_structure_list` with the
+    # `previous_version_structure_list` to check the consistency.
+    import copy
+    global version_structure_list, previous_version_structure_list
+    previous_version_structure_list = copy.deepcopy(version_structure_list)
+
+    # Download the `version_structure_list` from the server
     version_structure_list.download()
     if refresh != None:
         # refresh usermap and groupmap
@@ -34,8 +41,37 @@ def post(push_vs):
         # you will probably want to leave this here and
         # put your post() code instead of "pass" below.
         return
-    global version_structure_list
-    version_structure_list.upload()
+    global version_structure_list, previous_version_structure_list
+
+    import os
+    current = User(os.getuid())
+    version_structure = version_structure_list.version_structures[current]
+
+    # Update the `version_structure` for the current user
+    for principal, vs in version_structure_list.version_structures.items():
+        if principal != current:
+            version_structure.version_vector[principal] = vs.version_number
+
+    # Update itself version number
+    version_structure.version_number += 1
+
+    # Update group version number which consists of the current user
+    for principal, vs in version_structure_list.version_structures.items():
+        if isinstance(principal, Group) and current in vs.version_vector:
+            vs.version_number += 1
+
+    # Check the consistency
+    ok = True
+    for principal, vs in version_structure_list.version_structures.items():
+        if principal in previous_version_structure_list.version_structures:
+            if previous_version_structure_list.version_structures[principal].version_number > vs.version_number:
+                ok = False
+                break
+
+    if ok:
+        version_structure_list.upload()
+    else:
+        version_structure_list = previous_version_structure_list
 
 class VersionStructure:
     """
@@ -51,9 +87,13 @@ class VersionStructure:
     # later read from
     i_handle: str
 
+    # current version_number, increasing monotonically
+    version_number: int
+
     def __init__(self):
         self.version_vector = {}
         self.i_handle = ""
+        self.version_number = 0
 
 class VersionStructureList:
     """
@@ -91,6 +131,7 @@ class VersionStructureList:
         blob = pickle.dumps(self.version_structures)
         server.store_version_structure_list(blob)
 
+previous_version_structure_list = VersionStructureList()
 version_structure_list = VersionStructureList()
 
 class Itable:
